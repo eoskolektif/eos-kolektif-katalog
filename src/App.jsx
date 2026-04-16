@@ -58,10 +58,13 @@ export default function App() {
   const [colors, setColors] = useState({});
   const [expandedProduct, setExpandedProduct] = useState(null);
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [newProductCode, setNewProductCode] = useState('');
   const [newProductName, setNewProductName] = useState('');
   const [newProductPrice, setNewProductPrice] = useState('');
   const [newProductNote, setNewProductNote] = useState('');
   const [newProductImage, setNewProductImage] = useState(null);
+  const [editingCode, setEditingCode] = useState(null);
+  const [editCodeValue, setEditCodeValue] = useState('');
   const [showAddColor, setShowAddColor] = useState(null);
   const [newColorName, setNewColorName] = useState('');
   const [newColorStock, setNewColorStock] = useState('');
@@ -100,7 +103,7 @@ export default function App() {
 
   async function addProduct() {
     if (!newProductName.trim()) return;
-    const code = getNextCode();
+    const code = newProductCode.trim() || getNextCode();
     const { error } = await supabase.from('products').insert({
       category: activeCategory, code, name: newProductName.trim(),
       price: newProductPrice ? parseFloat(newProductPrice) : 0,
@@ -108,7 +111,15 @@ export default function App() {
       image_url: newProductImage || null,
     });
     if (error) { alert('Hata: ' + error.message); return; }
-    setNewProductName(''); setNewProductPrice(''); setNewProductNote(''); setNewProductImage(null); setShowAddProduct(false);
+    setNewProductCode(''); setNewProductName(''); setNewProductPrice(''); setNewProductNote(''); setNewProductImage(null); setShowAddProduct(false);
+    loadProducts();
+  }
+
+  async function updateProductCode(id, newCode) {
+    if (!newCode.trim()) return;
+    const { error } = await supabase.from('products').update({ code: newCode.trim() }).eq('id', id);
+    if (error) { alert('Hata: ' + error.message); return; }
+    setEditingCode(null);
     loadProducts();
   }
 
@@ -204,6 +215,11 @@ export default function App() {
             <ImageUpload src={newProductImage} onUpload={setNewProductImage} size={72} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                <div style={{ flex: '0 0 auto', minWidth: 110 }}>
+                  <div style={{ fontSize: 10, color: '#999', marginBottom: 3 }}>Ürün Kodu</div>
+                  <input value={newProductCode} onChange={e => setNewProductCode(e.target.value)} placeholder={getNextCode()}
+                    style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12, fontFamily: 'monospace', fontWeight: 700, color: '#993C1D' }} />
+                </div>
                 <div style={{ flex: 2, minWidth: 150 }}>
                   <div style={{ fontSize: 10, color: '#999', marginBottom: 3 }}>Ürün Adı</div>
                   <input value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Ürün adını girin"
@@ -224,8 +240,8 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button onClick={addProduct} style={{ padding: '7px 18px', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Kaydet</button>
-            <button onClick={() => setShowAddProduct(false)} style={{ padding: '7px 14px', fontSize: 12, fontFamily: 'inherit', background: 'transparent', color: '#999', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer' }}>İptal</button>
-            <span style={{ fontSize: 10, color: '#bbb', marginLeft: 8 }}>Kod: {getNextCode()}</span>
+            <button onClick={() => { setShowAddProduct(false); setNewProductCode(''); }} style={{ padding: '7px 14px', fontSize: 12, fontFamily: 'inherit', background: 'transparent', color: '#999', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer' }}>İptal</button>
+            <span style={{ fontSize: 10, color: '#bbb', marginLeft: 8 }}>Kodu boş bırakırsan: {getNextCode()}</span>
           </div>
         </div>
       )}
@@ -258,7 +274,23 @@ export default function App() {
                     <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' }}>
                       <ImageUpload src={product.image_url} onUpload={(img) => updateProductImage(product.id, img)} size={80} />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 11, color: '#993C1D', fontFamily: 'monospace', marginBottom: 4 }}>{product.code}</div>
+                        {editingCode === product.id ? (
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 4 }}>
+                            <input value={editCodeValue} onChange={e => setEditCodeValue(e.target.value)}
+                              style={{ padding: '4px 8px', border: '1px solid #993C1D', borderRadius: 4, fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: '#993C1D', width: 120 }}
+                              autoFocus onKeyDown={e => { if (e.key === 'Enter') updateProductCode(product.id, editCodeValue); }} />
+                            <button onClick={() => updateProductCode(product.id, editCodeValue)}
+                              style={{ fontSize: 10, padding: '4px 8px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>OK</button>
+                            <button onClick={() => setEditingCode(null)}
+                              style={{ fontSize: 10, padding: '4px 6px', background: 'transparent', color: '#999', border: '1px solid #ddd', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>x</button>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 11, color: '#993C1D', fontFamily: 'monospace', marginBottom: 4, cursor: 'pointer', display: 'inline-block' }}
+                            onClick={() => { setEditingCode(product.id); setEditCodeValue(product.code); }}
+                            title="Düzenlemek için tıkla">
+                            {product.code} <span style={{ fontSize: 9, color: '#ccc', marginLeft: 4 }}>düzenle</span>
+                          </div>
+                        )}
                         <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>{product.name}</div>
                         {product.price > 0 && <div style={{ fontSize: 13, color: '#0000FF' }}>{product.price} TL</div>}
                         {product.note && <div style={{ fontSize: 11, color: '#999', marginTop: 4, fontStyle: 'italic' }}>{product.note}</div>}
