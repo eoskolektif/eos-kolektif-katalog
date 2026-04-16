@@ -6,6 +6,7 @@ const CATEGORIES = [
   { id: 'KPE', name: 'Küpeler' },
   { id: 'BLK', name: 'Bileklikler' },
   { id: 'YZK', name: 'Yüzükler' },
+  { id: 'FLR', name: 'Fularlar' },
   { id: 'DEK', name: 'Dekorasyon' },
   { id: 'TBL', name: 'Tablolar' },
   { id: 'AKS', name: 'Aksesuarlar' },
