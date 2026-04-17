@@ -62,10 +62,13 @@ export default function App() {
   const [newProductCode, setNewProductCode] = useState('');
   const [newProductName, setNewProductName] = useState('');
   const [newProductPrice, setNewProductPrice] = useState('');
+  const [newProductStock, setNewProductStock] = useState('');
   const [newProductNote, setNewProductNote] = useState('');
   const [newProductImage, setNewProductImage] = useState(null);
   const [editingCode, setEditingCode] = useState(null);
   const [editCodeValue, setEditCodeValue] = useState('');
+  const [editingMainStock, setEditingMainStock] = useState(null);
+  const [editMainStockValue, setEditMainStockValue] = useState('');
   const [showAddColor, setShowAddColor] = useState(null);
   const [newColorName, setNewColorName] = useState('');
   const [newColorStock, setNewColorStock] = useState('');
@@ -110,11 +113,12 @@ export default function App() {
     const { error } = await supabase.from('products').insert({
       category: activeCategory, code, name: newProductName.trim(),
       price: newProductPrice ? parseFloat(newProductPrice) : 0,
+      stock: newProductStock ? parseInt(newProductStock) : 0,
       note: newProductNote.trim() || null,
       image_url: newProductImage || null,
     });
     if (error) { alert('Hata: ' + error.message); return; }
-    setNewProductCode(''); setNewProductName(''); setNewProductPrice(''); setNewProductNote(''); setNewProductImage(null); setShowAddProduct(false);
+    setNewProductCode(''); setNewProductName(''); setNewProductPrice(''); setNewProductStock(''); setNewProductNote(''); setNewProductImage(null); setShowAddProduct(false);
     loadProducts();
   }
 
@@ -123,6 +127,12 @@ export default function App() {
     const { error } = await supabase.from('products').update({ code: newCode.trim() }).eq('id', id);
     if (error) { alert('Hata: ' + error.message); return; }
     setEditingCode(null);
+    loadProducts();
+  }
+
+  async function updateMainStock(id, value) {
+    await supabase.from('products').update({ stock: parseInt(value) || 0 }).eq('id', id);
+    setEditingMainStock(null);
     loadProducts();
   }
 
@@ -167,10 +177,14 @@ export default function App() {
     loadProducts();
   }
 
-  const totalStock = (pid) => (colors[pid] || []).reduce((s, c) => s + (c.stock || 0), 0);
+  const totalStock = (p) => {
+    const pColors = colors[p.id] || [];
+    if (pColors.length > 0) return pColors.reduce((s, c) => s + (c.stock || 0), 0);
+    return p.stock || 0;
+  };
   const filteredProducts = searchQuery.trim() ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.code.toLowerCase().includes(searchQuery.toLowerCase())) : products;
   const allVariants = Object.values(colors).flat().length;
-  const allStock = products.reduce((s, p) => s + totalStock(p.id), 0);
+  const allStock = products.reduce((s, p) => s + totalStock(p), 0);
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", maxWidth: 900, margin: '0 auto', padding: '0.5rem 0' }}>
@@ -233,6 +247,11 @@ export default function App() {
                   <input value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} placeholder="0" type="number"
                     style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12, fontFamily: 'inherit' }} />
                 </div>
+                <div style={{ flex: 1, minWidth: 70 }}>
+                  <div style={{ fontSize: 10, color: '#999', marginBottom: 3 }}>Stok</div>
+                  <input value={newProductStock} onChange={e => setNewProductStock(e.target.value)} placeholder="0" type="number"
+                    style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12, fontFamily: 'inherit' }} />
+                </div>
               </div>
               <div>
                 <div style={{ fontSize: 10, color: '#999', marginBottom: 3 }}>Not</div>
@@ -255,7 +274,7 @@ export default function App() {
         <div>
           {filteredProducts.map(product => {
             const isExpanded = expandedProduct === product.id;
-            const ts = totalStock(product.id);
+            const ts = totalStock(product);
             const prodColors = colors[product.id] || [];
             return (
               <div key={product.id} style={{ border: '1px solid #eee', borderRadius: 10, marginBottom: 6, overflow: 'hidden' }}>
@@ -267,7 +286,11 @@ export default function App() {
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#993C1D', fontFamily: 'monospace', minWidth: 70 }}>{product.code}</span>
                   <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: '#2C2C2A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</span>
                   {product.price > 0 && <span style={{ fontSize: 11, color: '#888' }}>{product.price} TL</span>}
-                  <span style={{ fontSize: 10, color: prodColors.length > 0 ? '#534AB7' : '#ccc', background: prodColors.length > 0 ? '#EEEDFE' : '#f5f5f5', padding: '2px 7px', borderRadius: 4 }}>{prodColors.length} renk</span>
+                  {prodColors.length > 0 ? (
+                    <span style={{ fontSize: 10, color: '#534AB7', background: '#EEEDFE', padding: '2px 7px', borderRadius: 4 }}>{prodColors.length} renk</span>
+                  ) : (
+                    <span style={{ fontSize: 10, color: '#aaa', background: '#f5f5f5', padding: '2px 7px', borderRadius: 4 }}>tek</span>
+                  )}
                   <span style={{ fontSize: 10, color: ts > 0 ? '#0F6E56' : '#ccc', background: ts > 0 ? '#E1F5EE' : '#f5f5f5', padding: '2px 7px', borderRadius: 4 }}>{ts}</span>
                   <span style={{ fontSize: 14, color: '#ccc', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>&#9662;</span>
                 </div>
@@ -296,6 +319,23 @@ export default function App() {
                         )}
                         <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>{product.name}</div>
                         {product.price > 0 && <div style={{ fontSize: 13, color: '#0000FF' }}>{product.price} TL</div>}
+                        {prodColors.length === 0 && (
+                          <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 10, color: '#999' }}>Stok:</span>
+                            {editingMainStock === product.id ? (
+                              <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+                                <input value={editMainStockValue} onChange={e => setEditMainStockValue(e.target.value)} type="number"
+                                  style={{ width: 54, padding: '3px 6px', border: '1px solid #0F6E56', borderRadius: 4, fontSize: 11, fontFamily: 'inherit', textAlign: 'center' }}
+                                  autoFocus onKeyDown={e => { if (e.key === 'Enter') updateMainStock(product.id, editMainStockValue); }} />
+                                <button onClick={() => updateMainStock(product.id, editMainStockValue)}
+                                  style={{ fontSize: 10, padding: '3px 7px', background: '#1D9E75', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>OK</button>
+                              </div>
+                            ) : (
+                              <span onClick={() => { setEditingMainStock(product.id); setEditMainStockValue(String(product.stock || 0)); }}
+                                style={{ fontSize: 11, color: '#0F6E56', background: '#E1F5EE', padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>{product.stock || 0} adet</span>
+                            )}
+                          </div>
+                        )}
                         {product.note && <div style={{ fontSize: 11, color: '#999', marginTop: 4, fontStyle: 'italic' }}>{product.note}</div>}
                       </div>
                     </div>
