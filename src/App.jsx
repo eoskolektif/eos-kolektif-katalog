@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabase.js';
 
 const CATEGORIES = [
-  { id: 'KLY', name: 'Kolyeler' },
-  { id: 'KPE', name: 'Küpeler' },
-  { id: 'BLK', name: 'Bileklikler' },
-  { id: 'YZK', name: 'Yüzükler' },
-  { id: 'FLR', name: 'Fularlar' },
-  { id: 'DEK', name: 'Dekorasyon' },
-  { id: 'TBL', name: 'Tablolar' },
-  { id: 'AKS', name: 'Aksesuarlar' },
-  { id: 'KSL', name: 'Kişiye Özel' },
+  { id: 'KLY', name: 'Kolyeler', startNum: 1001 },
+  { id: 'KPE', name: 'Küpeler', startNum: 2001 },
+  { id: 'BLK', name: 'Bileklikler', startNum: 3001 },
+  { id: 'YZK', name: 'Yüzükler', startNum: 4001 },
+  { id: 'FLR', name: 'Fularlar', startNum: 5001 },
+  { id: 'DEK', name: 'Dekorasyon', startNum: 6001 },
+  { id: 'TBL', name: 'Tablolar', startNum: 7001 },
+  { id: 'AKS', name: 'Aksesuarlar', startNum: 8001 },
+  { id: 'KSL', name: 'Kişiye Özel', startNum: 9001 },
 ];
 
 const COLOR_PRESETS = ['Altın', 'Gümüş', 'Rose Gold', 'Siyah', 'Beyaz', 'Bronz', 'Mor', 'Kırmızı', 'Mavi', 'Yeşil'];
@@ -96,9 +96,11 @@ export default function App() {
   }
 
   function getNextCode() {
-    if (products.length === 0) return `${activeCategory}-1001`;
+    const cat = CATEGORIES.find(c => c.id === activeCategory);
+    const startNum = cat?.startNum || 1001;
+    if (products.length === 0) return `${activeCategory}-${startNum}`;
     const nums = products.map(p => parseInt(p.code.split('-')[1])).filter(n => !isNaN(n));
-    const max = nums.length > 0 ? Math.max(...nums) : 1000;
+    const max = nums.length > 0 ? Math.max(...nums) : (startNum - 1);
     return `${activeCategory}-${max + 1}`;
   }
 
