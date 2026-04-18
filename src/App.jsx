@@ -59,6 +59,12 @@ export default function App() {
   const [editCodeValue, setEditCodeValue] = useState('');
   const [editingMainStock, setEditingMainStock] = useState(null);
   const [editMainStockValue, setEditMainStockValue] = useState('');
+  const [editingName, setEditingName] = useState(null);
+  const [editNameValue, setEditNameValue] = useState('');
+  const [editingPrice, setEditingPrice] = useState(null);
+  const [editPriceValue, setEditPriceValue] = useState('');
+  const [editingNote, setEditingNote] = useState(null);
+  const [editNoteValue, setEditNoteValue] = useState('');
   const [showAddColor, setShowAddColor] = useState(null);
   const [newColorName, setNewColorName] = useState('');
   const [newColorStock, setNewColorStock] = useState('');
@@ -159,6 +165,25 @@ export default function App() {
   async function updateMainStock(id, value) {
     await supabase.from('products').update({ stock: parseInt(value) || 0 }).eq('id', id);
     setEditingMainStock(null);
+    loadProducts();
+  }
+
+  async function updateProductName(id, value) {
+    if (!value.trim()) return;
+    await supabase.from('products').update({ name: value.trim() }).eq('id', id);
+    setEditingName(null);
+    loadProducts();
+  }
+
+  async function updateProductPrice(id, value) {
+    await supabase.from('products').update({ price: parseFloat(value) || 0 }).eq('id', id);
+    setEditingPrice(null);
+    loadProducts();
+  }
+
+  async function updateProductNote(id, value) {
+    await supabase.from('products').update({ note: value.trim() || null }).eq('id', id);
+    setEditingNote(null);
     loadProducts();
   }
 
@@ -402,26 +427,26 @@ export default function App() {
             return (
               <div key={product.id} style={{ border: `1px solid ${theme.border}`, borderRadius: 10, marginBottom: 6, overflow: 'hidden', background: theme.card }}>
                 <div onClick={() => setExpandedProduct(isExpanded ? null : product.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', background: isExpanded ? theme.cardAlt : theme.card }}>
-                  <div style={{ width: 40, height: 40, minWidth: 40, borderRadius: 6, overflow: 'hidden', background: theme.statBg }}>
-                    {product.image_url ? <img src={product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textDim, fontSize: 16 }}>&#9633;</div>}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', cursor: 'pointer', background: isExpanded ? theme.cardAlt : theme.card }}>
+                  <div style={{ width: 60, height: 60, minWidth: 60, borderRadius: 8, overflow: 'hidden', background: theme.statBg }}>
+                    {product.image_url ? <img src={product.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textDim, fontSize: 20 }}>&#9633;</div>}
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: theme.code, fontFamily: 'monospace', minWidth: 70 }}>{product.code}</span>
-                  <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: theme.code, fontFamily: 'monospace', minWidth: 75 }}>{product.code}</span>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</span>
                   {product.price > 0 && <span style={{ fontSize: 13, color: theme.text, fontWeight: 600 }}>{product.price} TL</span>}
                   {prodColors.length > 0 ? (
-                    <span style={{ fontSize: 10, color: theme.variantText, background: theme.variantBg, padding: '2px 7px', borderRadius: 4 }}>{prodColors.length} renk</span>
+                    <span style={{ fontSize: 10, color: theme.variantText, background: theme.variantBg, padding: '3px 8px', borderRadius: 4 }}>{prodColors.length} renk</span>
                   ) : (
-                    <span style={{ fontSize: 10, color: theme.textDim, background: theme.statBg, padding: '2px 7px', borderRadius: 4 }}>tek</span>
+                    <span style={{ fontSize: 10, color: theme.textDim, background: theme.statBg, padding: '3px 8px', borderRadius: 4 }}>tek</span>
                   )}
-                  <span style={{ fontSize: 13, fontWeight: 700, color: ts > 0 ? theme.stockText : theme.textDim, background: ts > 0 ? theme.stockBg : theme.statBg, padding: '3px 10px', borderRadius: 4, minWidth: 34, textAlign: 'center' }}>{ts}</span>
-                  <span style={{ fontSize: 14, color: theme.textDim, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>&#9662;</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: ts > 0 ? theme.stockText : theme.textDim, background: ts > 0 ? theme.stockBg : theme.statBg, padding: '4px 12px', borderRadius: 4, minWidth: 36, textAlign: 'center' }}>{ts}</span>
+                  <span style={{ fontSize: 16, color: theme.textDim, transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>&#9662;</span>
                 </div>
 
                 {isExpanded && (
-                  <div style={{ borderTop: `1px solid ${theme.border}`, padding: '12px 14px', background: theme.cardAlt }}>
-                    <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' }}>
-                      <ImageUpload src={product.image_url} onUpload={(img) => updateProductImage(product.id, img)} size={80} dark={dark} />
+                  <div style={{ borderTop: `1px solid ${theme.border}`, padding: '16px 18px', background: theme.cardAlt }}>
+                    <div style={{ display: 'flex', gap: 16, marginBottom: 14, alignItems: 'flex-start' }}>
+                      <ImageUpload src={product.image_url} onUpload={(img) => updateProductImage(product.id, img)} size={120} dark={dark} />
                       <div style={{ flex: 1 }}>
                         {editingCode === product.id ? (
                           <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 4 }}>
@@ -434,16 +459,51 @@ export default function App() {
                               style={{ fontSize: 10, padding: '4px 6px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>x</button>
                           </div>
                         ) : (
-                          <div style={{ fontSize: 11, color: theme.code, fontFamily: 'monospace', marginBottom: 4, cursor: 'pointer', display: 'inline-block' }}
+                          <div style={{ fontSize: 11, color: theme.code, fontFamily: 'monospace', marginBottom: 6, cursor: 'pointer', display: 'inline-block' }}
                             onClick={() => { setEditingCode(product.id); setEditCodeValue(product.code); }}
                             title="Düzenlemek için tıkla">
                             {product.code} <span style={{ fontSize: 9, color: theme.textDim, marginLeft: 4 }}>düzenle</span>
                           </div>
                         )}
-                        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2, color: theme.text }}>{product.name}</div>
-                        {product.price > 0 && <div style={{ fontSize: 13, color: dark ? '#6ea8fe' : '#0000FF' }}>{product.price} TL</div>}
+
+                        {editingName === product.id ? (
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 6 }}>
+                            <input value={editNameValue} onChange={e => setEditNameValue(e.target.value)}
+                              style={{ flex: 1, padding: '6px 10px', background: theme.input, border: `1px solid ${theme.accent}`, borderRadius: 4, fontSize: 15, fontFamily: 'inherit', fontWeight: 600, color: theme.text }}
+                              autoFocus onKeyDown={e => { if (e.key === 'Enter') updateProductName(product.id, editNameValue); }} />
+                            <button onClick={() => updateProductName(product.id, editNameValue)}
+                              style={{ fontSize: 10, padding: '6px 10px', background: theme.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>OK</button>
+                            <button onClick={() => setEditingName(null)}
+                              style={{ fontSize: 10, padding: '6px 8px', background: 'transparent', color: theme.textMuted, border: `1px solid ${theme.border}`, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>x</button>
+                          </div>
+                        ) : (
+                          <div onClick={() => { setEditingName(product.id); setEditNameValue(product.name); }}
+                            title="Düzenlemek için tıkla"
+                            style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, color: theme.text, cursor: 'pointer' }}>
+                            {product.name}
+                          </div>
+                        )}
+
+                        <div style={{ marginBottom: 6 }}>
+                          <span style={{ fontSize: 10, color: theme.textMuted, marginRight: 6 }}>Fiyat:</span>
+                          {editingPrice === product.id ? (
+                            <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center' }}>
+                              <input value={editPriceValue} onChange={e => setEditPriceValue(e.target.value)} type="number"
+                                style={{ width: 80, padding: '3px 6px', background: theme.input, border: `1px solid ${dark ? '#6ea8fe' : '#0000FF'}`, borderRadius: 4, fontSize: 12, fontFamily: 'inherit', color: theme.text }}
+                                autoFocus onKeyDown={e => { if (e.key === 'Enter') updateProductPrice(product.id, editPriceValue); }} />
+                              <button onClick={() => updateProductPrice(product.id, editPriceValue)}
+                                style={{ fontSize: 10, padding: '3px 7px', background: theme.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>OK</button>
+                            </span>
+                          ) : (
+                            <span onClick={() => { setEditingPrice(product.id); setEditPriceValue(String(product.price || 0)); }}
+                              style={{ fontSize: 13, color: dark ? '#6ea8fe' : '#0000FF', cursor: 'pointer', fontWeight: 500 }}>
+                              {product.price || 0} TL <span style={{ fontSize: 9, color: theme.textDim }}>düzenle</span>
+                            </span>
+                          )}
+                        </div>
+
                         {prodColors.length === 0 && (
-                          <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ fontSize: 10, color: theme.textMuted }}>Stok:</span>
                             {editingMainStock === product.id ? (
                               <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
@@ -459,7 +519,24 @@ export default function App() {
                             )}
                           </div>
                         )}
-                        {product.note && <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 4, fontStyle: 'italic' }}>{product.note}</div>}
+
+                        <div>
+                          <span style={{ fontSize: 10, color: theme.textMuted, marginRight: 6 }}>Not:</span>
+                          {editingNote === product.id ? (
+                            <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center' }}>
+                              <input value={editNoteValue} onChange={e => setEditNoteValue(e.target.value)}
+                                style={{ width: 250, padding: '3px 6px', background: theme.input, border: `1px solid ${theme.border}`, borderRadius: 4, fontSize: 11, fontFamily: 'inherit', color: theme.text }}
+                                autoFocus onKeyDown={e => { if (e.key === 'Enter') updateProductNote(product.id, editNoteValue); }} />
+                              <button onClick={() => updateProductNote(product.id, editNoteValue)}
+                                style={{ fontSize: 10, padding: '3px 7px', background: theme.accent, color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit' }}>OK</button>
+                            </span>
+                          ) : (
+                            <span onClick={() => { setEditingNote(product.id); setEditNoteValue(product.note || ''); }}
+                              style={{ fontSize: 11, color: theme.textMuted, fontStyle: product.note ? 'italic' : 'normal', cursor: 'pointer' }}>
+                              {product.note || <span style={{ color: theme.textDim }}>— ekle</span>}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
