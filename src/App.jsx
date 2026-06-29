@@ -116,7 +116,7 @@ export default function App() {
 
   async function loadProducts() {
     setLoading(true);
-    const { data: prods } = await supabase.from('products').select('*').eq('category', activeCategory).order('created_at', { ascending: true });
+    const { data: prods } = await supabase.from('products').select('*').eq('category', activeCategory).order('created_at', { ascending: false });
     if (prods) {
       setProducts(prods);
       if (prods.length > 0) {
